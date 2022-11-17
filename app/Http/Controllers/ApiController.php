@@ -57,7 +57,7 @@ class ApiController extends Controller
     
             return response()->json([
               "message" => "Estudante removido."
-            ], 202);
+            ], 200);
         }else {
             return response()->json([
               "message" => "Estudante não encontrado."
