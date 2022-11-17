@@ -1,0 +1,61 @@
+version: "3"
+services:
+  #php
+  api_app:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    image: digitalocean.com/php
+    container_name: api_app
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: api_app
+      SERVICE_TAGS: dev
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+
+  #nginx
+  api_nginx:
+    image: nginx:alpine
+    container_name: api_nginx
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "8000:80"
+      - "443:443"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+
+  #mysql
+  api_mysql:
+    image: mysql:5.7.22
+    container_name: api_mysql
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "33006:3306"
+    environment:
+      MYSQL_DATABASE: api_project
+      MYSQL_ROOT_PASSWORD: password
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./docker/mysql/my.cnf:/etc/mysql/my.cnf
+
+  #phpmyadmin    
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    ports:
+      - 8001:80
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOSTS=api_mysql
+      - PMA_PORTS=3306
+      - PMA_USER=root
+      - PMA_PASSWORD=password
+      - PMA_PMADB=api_project
